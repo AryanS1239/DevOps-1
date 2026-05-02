@@ -30,14 +30,15 @@ pipeline {
             }
         }
         stage('Deploy to Kubernetes') {
+           stage('Deploy to Kubernetes') {
             steps {
                 echo "Deploying to Minikube Cluster via Docker..."
-                // 1. Copy the YAML file into the Minikube container's tmp folder
+                // 1. Copy the YAML file into Minikube
                 sh "docker cp k8s-deployment.yaml minikube:/tmp/k8s-deployment.yaml"
                 
-                // 2. Tell minikube to download kubectl, make it executable, and apply the deployment
+                // 2. Run as ROOT (-u root), move kubectl to a trusted folder, and apply
                 sh """
-                docker exec minikube sh -c 'cd /tmp && curl -sLO https://dl.k8s.io/release/v1.29.2/bin/linux/amd64/kubectl && chmod +x kubectl && ./kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /tmp/k8s-deployment.yaml'
+                docker exec -u root minikube sh -c 'curl -sLO https://dl.k8s.io/release/v1.29.2/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/ && kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /tmp/k8s-deployment.yaml'
                 """
             }
         }
