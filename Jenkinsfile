@@ -32,10 +32,13 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 echo "Deploying to Minikube Cluster via Docker..."
-                // 1. Copy the YAML file from Jenkins workspace into the Minikube container
+                // 1. Copy the YAML file into the Minikube container's tmp folder
                 sh "docker cp k8s-deployment.yaml minikube:/tmp/k8s-deployment.yaml"
-                // 2. Tell Minikube to apply it using its own internal kubectl
-                sh "docker exec minikube kubectl apply -f /tmp/k8s-deployment.yaml"
+                
+                // 2. Tell minikube to download kubectl, make it executable, and apply the deployment
+                sh """
+                docker exec minikube sh -c 'cd /tmp && curl -sLO https://dl.k8s.io/release/v1.29.2/bin/linux/amd64/kubectl && chmod +x kubectl && ./kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /tmp/k8s-deployment.yaml'
+                """
             }
         }
     }
