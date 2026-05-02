@@ -29,9 +29,12 @@ pipeline {
             steps {
                 echo "Deploying to Minikube Cluster via Docker..."
                 sh "docker cp k8s-deployment.yaml minikube:/tmp/k8s-deployment.yaml"
-                sh """
-                docker exec -u root minikube sh -c 'curl -sLO https://dl.k8s.io/release/v1.29.2/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/ && kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /tmp/k8s-deployment.yaml'
-                """
+                
+                // Breaking the commands up so Jenkins doesn't mangle the quotes
+                sh "docker exec -u root minikube curl -sLO https://dl.k8s.io/release/v1.29.2/bin/linux/amd64/kubectl"
+                sh "docker exec -u root minikube chmod +x kubectl"
+                sh "docker exec -u root minikube mv kubectl /usr/local/bin/"
+                sh "docker exec -u root minikube kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /tmp/k8s-deployment.yaml"
             }
         }
     }
